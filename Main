@@ -1,0 +1,405 @@
+/*
+Cramer's Rule
+By: Sebastian Grygorczuk
+
+This program creates a matrix of desired sizes, 1x1, 2x2, 3x3, and solves for the unknown variables.
+There is a bit of an issues with inputs as most of the character might be check more than once, need further studying of strings
+required to fix those bugs.
+*/
+
+#include <iostream>
+using namespace std;
+int dimension = 0;
+
+/*
+The matrixCalculator- takes in the desired size of the matrix, creates the the constants matrix, and the solution matrix which will represent the system of equations with. Majority of the program is ran through this function.
+Function Input: dimension, this variable is used to create the different arrays that will store
+Function Output: There is no proper output by majority of the program is ran through this function.
+*/
+void matrixCalucator(int dimension);
+
+/*
+This function is here to display the visual representation of the system of equation that the user has created
+Function Input: The inputs to this function are a pointer to the first value in the 2D array representing the constant Matrix, a pointer to the first value in solution Matrix and the dimensions of the matrixes
+Function Output: No proper output, however it will print out a visual representation of the System of Equation in Matrix form.
+*/
+void printSystemOfEquations(double *constantPointer, double *solutionMatrix,int dimension);
+
+/*
+This function is here to display the visual representation of the constant matrix being used to solve for the determinant.
+Function Input: The inputs to this function are a pointer to the first value in the 2D array representing the constant Matrix, a pointer to the first value in solution Matrix and the dimensions of the matrixes
+Function Output: No proper output, however it will print out a visual representation of the constant Matrix.
+*/
+void printDet(double *constantPointer, double *solutionMatrix,int dimension);
+
+/*
+This function is here to allow the user to modify their values in system of equations before calculating.
+Function Input: The inputs to this function are a pointer to the first value in the 2D array representing the constant Matrix, a pointer to the first value in solution Matrix and the dimensions of the matrixes
+Function Output: No proper out, however this function allows the user to modify the currently worked on system of equations.
+*/
+void checkForErros(double *constantPointer, double *solutionMatrix,int dimension);
+
+/*
+This function takes the given system of equations and then solves it for each of the individual unknown variables.
+Function Input: The inputs to this function are a pointer to the first value in the 2D array representing the constant Matrix, a pointer to the first value in solution Matrix and the dimensions of the matrixes
+Function Output: Gives back the value of the provided constant matrix determinant.
+*/
+double calculateDet(double *constantPointer, double *solutionMatrix,int dimension);
+
+int main()
+{
+    char answer = 'Y';
+    int dimension = 0;
+    cout << "Welcome to Cramer's Rule Calculator" << endl;
+    cout << endl;
+    while(answer == 'Y')
+    {
+        cout << "Please enter the size [1-3] of the matrix you wish to solve: ";
+question0:
+        cin >> dimension;
+        if(dimension < 3 && dimension > 0)
+        {
+            matrixCalucator(dimension);
+        }
+        else
+        {
+            cout << "That is an invalid size, please enter 1-3." << endl;
+            goto question0;
+        }
+        cout << "Would you like to solve another problem? (Y/N)" << endl;
+question1:
+        cin >> answer;
+        if(answer == 'Y'){}
+        else if(answer == 'N')
+        {
+            break;
+        }
+        else
+        {
+            cout << "I did not understand please enter (Y/N)" << endl;
+            goto question1;
+        }
+    }
+    return 0;
+}
+
+void matrixCalucator(int dimension)
+{
+    double input = 0;
+    double tempArray[dimension];
+    double constantMatrix [dimension][dimension];
+    double solutionMatrix [dimension];
+    double det[dimension];
+    double *constantPointer;
+    char answer = 'Y';
+
+    cout << "Enter the values in the constant matrix: " << endl;
+    for(int i = 0; i < dimension; i++)
+    {
+        for(int j = 0; j < dimension; j++)
+        {
+            if(cin >> input)
+                {
+                    constantMatrix[i][j] = input;
+                }
+            else
+            {
+                 constantMatrix[i][j] = 0;
+                 cin.clear();
+                 while (cin.get() != '\n') ;
+            }
+        }
+    }
+
+    constantPointer = &constantMatrix[0][0];
+
+    cout << "Now please enter the values for the solution matrix: " << endl;
+    for(int i = 0; i < dimension; i++)
+    {
+        if(cin >> input)
+            {
+                solutionMatrix[i] = input;
+            }
+        else
+            {
+                 solutionMatrix[i] = 0;
+                 cin.clear();
+                 while (cin.get() != '\n') ;
+            }
+    }
+
+    printSystemOfEquations(constantPointer, solutionMatrix, dimension);
+check:
+    cout << "Are there any errors? (Y/N)" << endl;
+question2:
+    cin >> answer;
+    if(answer == 'Y')
+    {
+        checkForErros(constantPointer, solutionMatrix,dimension);
+        cout << "You're new matrix is: " << endl;
+        printSystemOfEquations(constantPointer, solutionMatrix, dimension);
+        goto check;
+    }
+    else if (answer == 'N') {}
+    else
+    {
+        cout << "I did not understand please enter (Y/N)" << endl;
+        goto question2;
+    }
+
+    printDet(constantPointer, solutionMatrix, dimension);
+    det[0] = calculateDet(constantPointer, solutionMatrix, dimension);
+    if(det[0] == 0 && dimension > 1)
+    {
+        for(int i = 1; i < dimension+1; i++)
+        {
+            cout << "X" << i << " = Does Not Exist" << endl;
+        }
+    }
+    else if(dimension == 1){}
+    else
+    {
+        for(int i = 0; i < dimension; i++)
+        {
+            for(int j = 0; j < dimension; j++)
+                {
+                    tempArray[j] = constantMatrix[j][i];
+                    constantMatrix[j][i] = solutionMatrix[j];
+                }
+
+            printDet(constantPointer, solutionMatrix, dimension);
+            det[i+1] = calculateDet(constantPointer, solutionMatrix, dimension);
+
+            for(int k = 0; k < dimension; k++)
+            {
+                constantMatrix[k][i] =  tempArray[k];
+            }
+        }
+
+        for(int i = 1; i < dimension+1; i++)
+        {
+            cout << "X" << i << " = " << det[i]/det[0] << endl;
+        }
+    }
+
+}
+
+void printDet(double *constantPointer, double *solutionMatrix,int dimension)
+{
+        for(int i = 0; i < dimension; i++)
+        {
+            cout << " |";
+            for (int j = 0; j < dimension; j++)
+            {
+                if(j < dimension)
+                {
+                cout << " " << *(constantPointer + dimension*i + j);
+                }
+            }
+            cout << " |" << endl;
+    }
+}
+
+void printSystemOfEquations (double *constantPointer, double *solutionMatrix, int dimension)
+{
+    for(int i = 0; i < dimension; i++)
+        {
+            cout << " |";
+            for (int j = 0; j < dimension; j++)
+            {
+                if(j < dimension)
+                {
+                cout << " " << *(constantPointer + dimension*i + j);
+                }
+            }
+            cout << " |";
+            if( i == dimension/2)
+            {
+                cout << " * ";
+            }
+            else
+            {
+                cout << "   ";
+            }
+            cout << " | X" << i << " | ";
+            if( i == dimension/2 )
+            {
+                cout << " = ";
+            }
+            else
+            {
+                cout << "   ";
+            }
+            cout << " | " << solutionMatrix[i] << " |" << endl;
+        }
+}
+
+void checkForErros(double *constantPointer, double *solutionMatrix, int dimension)
+{
+    double input = 0;
+    double *index = constantPointer;
+    char answer = 'Y';
+    int errors = 0;
+    int row = 0;
+    int column = 0;
+    int position = 0;
+    cout << "How many errors are there?" << endl;
+    cin >> errors;
+    for(int i = 1; i < errors+1; i++)
+    {
+        constantPointer = index;
+        cout << "Is the error in the constant matrix or solution matrix? (C/S)" << endl;
+        cin >> answer;
+        if(answer == 'C')
+        {
+            cout << "Where is the error #" << i << "? Provide the row number followed by the column number. " << endl;
+            cin >> row;
+            cin >> column;
+            if(row > dimension || row < 1 || column > dimension || column < 1)
+            {
+                cout << "There is no such position in provided matrix, provide a new position of error." << endl;
+                i--;
+            }
+            else
+            {
+                row--;
+                column--;
+                position = (((row)*dimension) + column);
+                cout << "The current value of that position is: " << *(constantPointer+position) << ". Would you like to change it? (Y/N)" << endl;
+question3:
+                cin >> answer;
+                if(answer == 'Y')
+                {
+                    cout << "What would you like to change this value to?" << endl;
+                    if(cin >> input)
+                        {
+                            *(constantPointer+position) = input;
+                        }
+                    else
+                        {
+                            *(constantPointer+position) = 0;
+                            cin.clear();
+                            while (cin.get() != '\n') ;
+                        }
+                }
+                else if(answer == 'N')
+                {
+                    i--;
+                }
+                else
+                {
+                    cout << "I did not understand please enter (Y/N)" << endl;
+                    goto question3;
+                }
+            }
+        }
+        else if (answer == 'S')
+        {
+            cout << "Where is the error #" << i << "? Provide the row number where the error occurs." << endl;
+            cin >> row;
+            if(row > dimension || row < 1)
+            {
+                cout << "There is no such position in provided matrix, provide a new position of error." << endl;
+                i--;
+            }
+            else
+            {
+                cout << "The current value of that position is: " << solutionMatrix[row-1] << ". Would you like to change it? (Y/N)" << endl;
+question4:
+                cin >> answer;
+                if(answer == 'Y')
+                {
+                    cout << "What would you like to change this value to?" << endl;
+                    if(cin >> input)
+                        {
+                            solutionMatrix[row-1] = input;
+                        }
+                    else
+                        {
+                            solutionMatrix[row-1] = 0;
+                            cin.clear();
+                            while (cin.get() != '\n') ;
+                        }
+                }
+                else if(answer == 'N')
+                {
+                    i--;
+                }
+                else
+                {
+                    cout << "I did not understand please enter (Y/N)" << endl;
+                    goto question4;
+                }
+            }
+        }
+        else
+        {
+            i--;
+        }
+    }
+    constantPointer = index;
+}
+
+double calculateDet(double *constantPointer, double *solutionMatrix, int dimension)
+{
+    int position = 0;
+    double currentDet = 1;
+    double detArrayPosive[dimension];
+    double detArrayNegative[dimension];
+    if(dimension == 1)
+    {
+        cout << "x0 = " << *solutionMatrix / *constantPointer << endl;
+        return (*solutionMatrix / *constantPointer);
+    }
+    else
+    {
+            for(int i = 0; i < dimension; i++)
+            {
+                for(int j = 0; j < dimension;j++)
+                {
+                    position = i*(dimension)+j*((dimension*dimension-1)/(dimension-1));
+                    if(position >= dimension*dimension)
+                    {
+                        position -= dimension*dimension;
+                    }
+                    currentDet *= *(constantPointer+position);
+                }
+            detArrayPosive[i] = currentDet;
+            currentDet = 1;
+            }
+
+            for(int i = 0; i < dimension; i++)
+            {
+                for(int j = 0; j < dimension;j++)
+                {
+                    position = i*(dimension)+j*(dimension-1)+(dimension-1);
+                    if(position >= dimension*dimension )
+                    {
+                        position = position-dimension*dimension;
+                    }
+
+                    currentDet *= *(constantPointer+position);
+                }
+            detArrayNegative[i] = currentDet;
+            currentDet = 1;
+            }
+        }
+
+    currentDet = 0;
+
+    if(dimension == 2)
+    {
+        currentDet = detArrayPosive[0] - detArrayPosive[1];
+        cout << "Determinant = " << currentDet << endl;
+        return currentDet;
+    }
+    else
+    {
+        for(int i = 0; i < dimension; i++)
+        {
+            currentDet += detArrayPosive[i] - detArrayNegative[i];
+        }
+        cout << "Determinant = " << currentDet << endl;
+        return currentDet;
+    }
+}
